@@ -17,6 +17,7 @@ class Render{
 		void clear();
 		void update();
 		void set_viewport(int x, int y, int w, int h);
+		SDL_Rect viewport() const;
 		SDL_Renderer * renderer() const { return m_renderer.get(); };
 	private:
 		std::shared_ptr<SDL_Renderer> m_renderer;

@@ -10,7 +10,7 @@ Player::Player(Render * render, glm::vec2 position, glm::vec2 direction){
 	m_render = render;
 }
 
-void Player::draw(const size_t vp_w, const size_t vp_h){
+void Player::draw(const Map& map){
 	//
 
 	/*
@@ -22,11 +22,12 @@ void Player::draw(const size_t vp_w, const size_t vp_h){
 	};
 	*/
 
+	SDL_Rect viewport = m_render->viewport();
 	// TODO: dont type this in.
-	const size_t MAP_W = 24;
-	const size_t MAP_H = 24;
+	const size_t MAP_W = map.width();
+	const size_t MAP_H = map.heigth();
 
-	auto [x, y] =  map2_screen(MAP_W, MAP_H, vp_w, vp_h, m_position);
+	auto [x, y] = Utils::map2_screen(MAP_W, MAP_H, viewport.w, viewport.h, m_position);
 
 	m_render->set_draw_color(0, 0xff, 0);
 

@@ -3,11 +3,12 @@
 #include <glm/glm.hpp>
 #include <SDL2/SDL.h>
 #include "Render.h"
+#include "Map.h"
 
 class Player{
 	public:
 		Player(Render * render, glm::vec2 position, glm::vec2 direction);
-		void draw(const size_t vp_w, const size_t vp_h);
+		void draw(const Map& map);
 		constexpr glm::vec2 direction () const { return m_direction; };
 		constexpr glm::vec2 camera_plane () const { return m_camera_plane; };
 		constexpr glm::vec2 position() const { return m_position; };

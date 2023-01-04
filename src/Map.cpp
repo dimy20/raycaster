@@ -33,12 +33,12 @@ Map::Map(Render * render){
 	  {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}};
 }
 
-void Map::draw(const size_t vport_w,  const size_t vport_h){
+void Map::draw(){
+	SDL_Rect viewport = m_render->viewport();
 	// Want to draw each cell relative to the viewports dimensions!
 	// Independer to whatever the viewports dimensions might be.
-	//
-	size_t rect_w = vport_w / m_width; // each cell will ocupy k = vportw / map_w;
-	size_t rect_h = vport_h / m_heigth;
+	size_t rect_w = viewport.w / m_width; // each cell will ocupy k = vportw / map_w;
+	size_t rect_h = viewport.h / m_heigth;
 
 
 	// red gree blue
@@ -78,16 +78,16 @@ void Map::draw(const size_t vport_w,  const size_t vport_h){
 	for(size_t i = 0; i < m_heigth; i++){
 		y1 = i *rect_h;
 		y2 = i *rect_h;
-		SDL_RenderDrawLine(m_render->renderer(), 0, y1, vport_w - 1, y2);
+		SDL_RenderDrawLine(m_render->renderer(), 0, y1, viewport.w - 1, y2);
 	}
 
 	int x1 = 0, x2 = 0;
 	for(size_t j = 0; j < m_width; j++){
 		x1 = j *rect_w;
 		x2 = j *rect_w;
-		SDL_RenderDrawLine(m_render->renderer(), x1, 0, x2, vport_h -1);
+		SDL_RenderDrawLine(m_render->renderer(), x1, 0, x2, viewport.h -1);
 	}
 
 	m_render->set_draw_color(0xff, 0, 0);
-	SDL_RenderDrawPoint(m_render->renderer(), vport_w / 2, vport_h /2);
+	SDL_RenderDrawPoint(m_render->renderer(), viewport.w / 2, viewport.h /2);
 };

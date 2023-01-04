@@ -19,7 +19,7 @@ add_executable(${PROJECT_NAME} src/main.cpp
 							   src/Render.cpp
 							   src/Map.cpp
 							   src/Player.cpp
-							   src/Caster.cpp
+							   src/RayCaster.cpp
 							   src/utils.cpp)
 
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Werror)
