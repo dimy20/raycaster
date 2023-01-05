@@ -31,7 +31,6 @@ namespace Math{
 				out << "(" << vec.x() << ", " << vec.y() << ")";
 				return out;
 			}
-			//Vec2 operator*(float scalar, const Vec2& other);
 		private:
 			std::pair<float, float> m_xy;
 	};

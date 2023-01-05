@@ -26,7 +26,11 @@ Vec2 Vec2::operator *= (float scalar){
 	return *this;
 }
 
-Vec2 Vec2::operator*(float scalar){ *this *= scalar; return *this; };
+Vec2 Vec2::operator*(float scalar){
+	Vec2 tmp(*this);
+	tmp *= scalar;
+	return tmp;
+};
 
 Vec2 Vec2::operator-(const Vec2& other){
 	Vec2 tmp = *this + (-1.0f * other);
