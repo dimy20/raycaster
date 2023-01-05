@@ -57,7 +57,18 @@ void Vec2::normalize(){
 	y *= inv_sqrt;
 };
 
-double Vec2::angle() const{
-	auto [x, y] = m_xy;
-	return atan2(y, x);
-}
+double Vec2::angle() const{ return atan2(m_xy.second, m_xy.first); }
+
+void Vec2::rotate(double a){
+	double cos_a = std::cos(a);
+	double sin_a = std::sin(a);
+
+	double rot_x, rot_y;
+	auto& [x, y] = m_xy;
+
+	rot_x = x * cos_a - y * sin_a;
+	rot_y = x * sin_a + y * cos_a;
+
+	x = rot_x;
+	y = rot_y;
+};

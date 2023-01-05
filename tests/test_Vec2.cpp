@@ -2,6 +2,7 @@
 #include <cmath>
 #include <gtest/gtest.h>
 #include "Vec.h"
+#include <limits>
 
 TEST(Vec2, constructor){
 	Math::Vec2 vec(1.0f, 1.0f);
@@ -84,23 +85,33 @@ TEST(Vec2, normalize){
 	ASSERT_EQ(b.length(), 0.0f);
 }
 
-constexpr static double to_deg(const double a){ return (a * 180.0f) / M_PI; };
-
 TEST(Vec2, angle){
 	Math::Vec2 a(1.0f, 0.0f);
 	ASSERT_EQ(a.angle(), 0.0f);
 
 	a = Math::Vec2(0.5f, 0.5f);
-	ASSERT_EQ(to_deg(a.angle()), 45.0f);
+	ASSERT_EQ(Math::to_deg(a.angle()), 45.0f);
 
 	a = Math::Vec2(0.0f, 1.0f);
-	ASSERT_EQ(to_deg(a.angle()), 90.0f);
+	ASSERT_EQ(Math::to_deg(a.angle()), 90.0f);
 
 	a = Math::Vec2(-1.0f, 1.0f);
-	ASSERT_EQ(to_deg(a.angle()), 90.0f + 45.0f);
+	ASSERT_EQ(Math::to_deg(a.angle()), 90.0f + 45.0f);
 
 	a = Math::Vec2(-1.0f, -1.0f);
-	ASSERT_EQ(to_deg(a.angle()), 45.0f - 180.0f);
+	ASSERT_EQ(Math::to_deg(a.angle()), 45.0f - 180.0f);
+}
+
+TEST(Vec2, rotate){
+	double E = std::numeric_limits<double>::epsilon();
+	Math::Vec2 a(1.0f, 1.0f);
+	a.normalize();
+
+	a.rotate(Math::to_rad(45.0f));
+	ASSERT_TRUE(std::abs(Math::to_deg(a.angle()) - 90.0f) <= E);
+
+	a.rotate(Math::to_rad(90.0f));
+	ASSERT_TRUE(std::abs(Math::to_deg(a.angle()) - 180.0f) <= E);
 }
 
 int main(int argc, char ** argv){

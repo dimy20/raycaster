@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <cmath>
+#include <ostream>
 
 namespace Math{
 	class Vec2{
@@ -24,11 +25,19 @@ namespace Math{
 			void normalize();
 			double length() const;
 			double angle() const;
+			void rotate(double a);
 
+			inline friend std::ostream& operator << (std::ostream& out, const Vec2& vec){
+				out << "(" << vec.x() << ", " << vec.y() << ")";
+				return out;
+			}
 			//Vec2 operator*(double scalar, const Vec2& other);
 		private:
 			std::pair<double, double> m_xy;
 	};
+
+	constexpr double to_deg(double rad){ return (rad * 180.0f) / M_PI; };
+	constexpr double to_rad(double deg){ return (deg * M_PI) / 180.0f; };
 
 	inline Vec2 operator*(double scalar, const Vec2& other){
 		Vec2 tmp = other;
