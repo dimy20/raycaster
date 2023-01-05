@@ -103,7 +103,7 @@ TEST(Vec2, angle){
 }
 
 TEST(Vec2, rotate){
-	double E = std::numeric_limits<double>::epsilon();
+	float E = std::numeric_limits<float>::epsilon();
 	Math::Vec2 a(1.0f, 1.0f);
 	a.normalize();
 

@@ -9,7 +9,7 @@ set(CMAKE_BUILD_TYPE debug)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/deps/SDL)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/deps/SDL_image)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/deps/SDL_ttf)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/deps/glm)
+#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/deps/glm)
 add_subdirectory(tests)
 
 add_library(RC STATIC src/Texture.cpp
@@ -23,9 +23,9 @@ add_library(RC STATIC src/Texture.cpp
 					  src/Vec.cpp)
 
 target_compile_options(RC PRIVATE -Wall -Werror)
-target_link_libraries(RC PRIVATE glm SDL2 SDL2_image SDL2_ttf)
+target_link_libraries(RC PRIVATE SDL2 SDL2_image SDL2_ttf)
 target_include_directories(RC PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
-									  glm SDL2 SDL2_ttf SDL2_image)
+									  SDL2 SDL2_ttf SDL2_image)
 
 #-Wconversion
 add_executable(${PROJECT_NAME} src/main.cpp)

@@ -12,14 +12,17 @@
 #include "Map.h"
 #include "Player.h"
 #include "utils.h"
+#include "Vec.h"
 
 #define VIEWPORT_W 1024
 #define VIEWPORT_H 728
+#define SPEED 0.1
 
+/*
 struct Point{
-	Point(glm::vec2 pos, Render * render) : m_position(pos), m_render(render) {};
+	Point(Math::Vec2 pos, Render * render) : m_position(pos), m_render(render) {};
 	void draw(const size_t vp_w, const size_t vp_h);
-	glm::vec2 m_position;
+	Math::Vec2 m_position;
 	Render * m_render;
 };
 
@@ -41,6 +44,8 @@ void Point::draw(const size_t vp_w, const size_t vp_h){
 	rect = {x - (int)(rect_w / 2), y - (int)(rect_h / 2), (int)rect_w, (int)rect_h};
 	SDL_RenderFillRect(m_render->renderer(), &rect);
 }
+
+*/
 
 
 
@@ -80,6 +85,7 @@ void init(){
 };
 
 int main(){
+
 	bool run = true;
 	init();
 	std::string title("ray caster");
@@ -94,12 +100,10 @@ int main(){
 	SDL_Event event;
 
 	Map map(&render);
-	Player player(&render, glm::vec2(2.3f, 2.3f), glm::vec2(1.0f, 0));
+	Player player(&render, Math::Vec2(2.3f, 2.3f), Math::Vec2(1.0f, 0));
 
 	render.set_viewport(0, 0, VIEWPORT_W, VIEWPORT_H);
 
-	Point test_point(glm::vec2(10.0f, 1.0f), &render);
-	(void)test_point;
 	RayCaster raycaster;
 	std::vector<Ray> casted_rays;
 	while(running){
@@ -112,21 +116,22 @@ int main(){
 
 			if(event.type == SDL_KEYDOWN){
 				auto pos = player.position();
+				auto& [posx, posy] = pos.xy();
 				switch(event.key.keysym.sym){
 					case SDLK_w:
-						pos.y += -1.0f;
+						posy += -SPEED;
 						player.update_position(pos);
 						break;
 					case SDLK_s:
-						pos.y += 1.0f;
+						posy += SPEED;
 						player.update_position(pos);
 						break;
 					case SDLK_d:
-						pos.x += 1.0f;
+						posx += SPEED;
 						player.update_position(pos);
 						break;
 					case SDLK_a:
-						pos.x -= 1.0f;
+						posx -= SPEED;
 						player.update_position(pos);
 						break;
 				}
@@ -143,8 +148,8 @@ int main(){
 
 
 
-		//render.set_draw_color(0, 0, 0);
-		//render.clear();
+		render.set_draw_color(0, 0, 0);
+		render.clear();
 
 
 		map.draw();
@@ -158,8 +163,6 @@ int main(){
 			}
 			ok ^= 1;
 		}
-
-		//test_point.draw(VIEWPORT_W, VIEWPORT_H);
 
 		render.update();
 
