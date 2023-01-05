@@ -1,5 +1,6 @@
 #include "RayCaster.h"
 #include "Player.h"
+#include <cassert>
 
 Ray& Ray::operator=(Ray && other){
 	if(this == &other) return *this;
@@ -29,8 +30,6 @@ void Ray::draw(Render& render, const Map& map){
 
 	render.set_draw_color(0xff, 0xff, 0xff);
 	SDL_RenderDrawLine(render.renderer(), x1_vp, y1_vp, x2_vp, y2_vp);
-
-
 
 	if(m_draw_h_step){
 		const auto& [comp_x, comp_y] = m_Hinter_components;
@@ -85,19 +84,12 @@ std::vector<Ray> RayCaster::apply(const Map& map, const Player& player){
 		size_t TILE_I, TILE_J;
 		TILE_I = (size_t)player_position.x();
 		TILE_J = (size_t)player_position.y();
-		//std::cout << "Tile i: " << TILE_I << "\n";
-		//std::cout << "Tile j: " << TILE_J << "\n";
-		//double alpha = atan2
-		/*Map columns to camera space*/
-		float camera_x = 2 *(x / (float)map.width())- 1;
+
+		float camera_x = 2 *( (float)x / (float)map.width())- 1; // camera space
+
 		ray_dir = player_direction + (camera_plane * camera_x);
-		double alpha = atan2(ray_dir.y(), ray_dir.x());
 
-		//double alpha = (tmp/ M_PI) * 180.0; // direction of the ray in angle form
-
-		// setup the offsets
-
-
+		double alpha = ray_dir.angle();
 
 		/* Setup of the dy offset for the initial computation of intersection
 		 * with the first horizontal line:

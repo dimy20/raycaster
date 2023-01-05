@@ -11,7 +11,6 @@
 #include "Render.h"
 #include "Map.h"
 #include "Player.h"
-#include "utils.h"
 #include "Vec.h"
 
 #define VIEWPORT_W 1024

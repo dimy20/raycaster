@@ -2,7 +2,6 @@
 #include <iostream>
 #include "Render.h"
 #include "Map.h"
-#include "utils.h"
 #include "Vec.h"
 class Player;
 

@@ -9,7 +9,6 @@ set(CMAKE_BUILD_TYPE debug)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/deps/SDL)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/deps/SDL_image)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/deps/SDL_ttf)
-#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/deps/glm)
 add_subdirectory(tests)
 
 add_library(RC STATIC src/Texture.cpp
@@ -19,7 +18,6 @@ add_library(RC STATIC src/Texture.cpp
 					  src/Map.cpp
 					  src/Player.cpp
 					  src/RayCaster.cpp
-					  src/utils.cpp
 					  src/Vec.cpp)
 
 target_compile_options(RC PRIVATE -Wall -Werror)

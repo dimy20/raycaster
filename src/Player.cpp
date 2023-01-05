@@ -1,12 +1,11 @@
-#include "Player.h"
-#include "utils.h"
 #include <iostream>
+#include "Player.h"
 
 Player::Player(Render * render, Math::Vec2 position, Math::Vec2 direction){
 	// TODO: position should never exceed map boundaries!
 	m_position = position;
 	m_direction = direction;
-	m_camera_plane = Math::Vec2(0.0, 0.66f);
+	m_camera_plane = Math::Vec2(0.0f, 0.66f);
 	m_render = render;
 	m_direction.normalize();
 }
