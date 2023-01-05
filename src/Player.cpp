@@ -1,31 +1,21 @@
 #include <iostream>
 #include "Player.h"
 
-Player::Player(Render * render, Math::Vec2 position, Math::Vec2 direction){
+Player::Player(Render * render, Map * map, Math::Vec2 position, Math::Vec2 direction){
 	// TODO: position should never exceed map boundaries!
 	m_position = position;
 	m_direction = direction;
 	m_camera_plane = Math::Vec2(0.0f, 0.66f);
 	m_render = render;
 	m_direction.normalize();
+	m_map = map;
 }
 
-void Player::draw(const Map& map){
-	//
-
-	/*
-	if(m_draw_dir){
-		Math::Vec2 dest = (m_direction * 30.f + m_position);
-		m_render->set_draw_color(0xff, 0xff, 0xff);
-		SDL_RenderDrawLine(m_render->renderer(), 0, 0, (int)m_position.x , (int)m_position.y );
-		SDL_RenderDrawLine(m_render->renderer(), (int)m_position.x, (int)m_position.y, (int)dest.x,(int)dest.y);
-	};
-	*/
-
+void Player::draw(){
 	SDL_Rect viewport = m_render->viewport();
 	// TODO: dont type this in.
-	const size_t MAP_W = map.width();
-	const size_t MAP_H = map.heigth();
+	const size_t MAP_W = m_map->width();
+	const size_t MAP_H = m_map->heigth();
 
 	auto [x, y] = Math::map2_screen(MAP_W, MAP_H, viewport.w, viewport.h, m_position);
 
@@ -37,3 +27,27 @@ void Player::draw(const Map& map){
 	SDL_RenderFillRect(m_render->renderer(), &m_rect);
 };
 
+
+void Player::keypressed(const SDL_Keycode& key){
+	Math::Vec2 new_pos;
+	switch(key){
+		case SDLK_w:
+			new_pos = m_position + (m_direction * MOV_SPEED);
+			break;
+		case SDLK_s:
+			new_pos = m_position + (m_direction * -MOV_SPEED);
+			break;
+		case SDLK_d:
+			m_direction.rotate(Math::to_rad(ROTATION_SPEED));
+			m_camera_plane.rotate(Math::to_rad(ROTATION_SPEED));
+			break;
+		case SDLK_a:
+			m_direction.rotate(Math::to_rad(-ROTATION_SPEED));
+			m_camera_plane.rotate(Math::to_rad(-ROTATION_SPEED));
+			break;
+	}
+
+	if(m_map->at((int)new_pos.x(), (int)new_pos.y()) == 0){
+		m_position = new_pos;
+	}
+};

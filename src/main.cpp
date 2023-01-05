@@ -15,7 +15,6 @@
 
 #define VIEWPORT_W 1024
 #define VIEWPORT_H 728
-#define SPEED 0.1
 
 /*
 struct Point{
@@ -84,8 +83,6 @@ void init(){
 };
 
 int main(){
-
-	bool run = true;
 	init();
 	std::string title("ray caster");
 	Window window(title, (size_t)1024, (size_t)728, 0, 0);
@@ -99,7 +96,7 @@ int main(){
 	SDL_Event event;
 
 	Map map(&render);
-	Player player(&render, Math::Vec2(2.3f, 2.3f), Math::Vec2(1.0f, 0));
+	Player player(&render, &map, Math::Vec2(2.3f, 2.3f), Math::Vec2(1.0f, 0));
 
 	render.set_viewport(0, 0, VIEWPORT_W, VIEWPORT_H);
 
@@ -114,57 +111,20 @@ int main(){
 			};
 
 			if(event.type == SDL_KEYDOWN){
-				auto pos = player.position();
-				auto& [posx, posy] = pos.xy();
-				switch(event.key.keysym.sym){
-					case SDLK_w:
-						posy += -SPEED;
-						player.update_position(pos);
-						break;
-					case SDLK_s:
-						posy += SPEED;
-						player.update_position(pos);
-						break;
-					case SDLK_d:
-						posx += SPEED;
-						player.update_position(pos);
-						break;
-					case SDLK_a:
-						posx -= SPEED;
-						player.update_position(pos);
-						break;
-				}
+				player.keypressed(event.key.keysym.sym);
 			}
-
 		};
-
-		std::pair<double, double> i_x_y;
-
-		if(run){
-			casted_rays = raycaster.apply(map, player);
-			run = false;
-		}
-
-
 
 		render.set_draw_color(0, 0, 0);
 		render.clear();
 
-
 		map.draw();
-		player.draw(map);
-		//render.set_draw_color(204, 204, 0);
-
-		int ok = 1; // draw half
+		player.draw();
+		casted_rays = raycaster.apply(map, player);
 		for(auto& r : casted_rays){
-			if(ok){
-				r.draw(render, map);
-			}
-			ok ^= 1;
+			r.draw(render, map);
 		}
-
 		render.update();
-
 	}
 	return 0;
 };
