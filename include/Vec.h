@@ -35,8 +35,8 @@ namespace Math{
 			std::pair<float, float> m_xy;
 	};
 
-	constexpr float to_deg(float rad){ return (rad * 180.0f) / M_PI; };
-	constexpr float to_rad(float deg){ return (deg * M_PI) / 180.0f; };
+	constexpr float to_deg(float rad){ return (rad * 180.0f) / static_cast<float>(M_PI); };
+	constexpr float to_rad(float deg){ return (deg * static_cast<float>(M_PI)) / 180.0f; };
 
 	inline Vec2 operator*(float scalar, const Vec2& other){
 		Vec2 tmp = other;

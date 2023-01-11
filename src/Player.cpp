@@ -13,9 +13,9 @@ Player::Player(Render * render, Map * map, Math::Vec2 position, Math::Vec2 direc
 
 void Player::draw(){
 	SDL_Rect viewport = m_render->viewport();
-	// TODO: dont type this in.
-	const size_t MAP_W = m_map->width();
-	const size_t MAP_H = m_map->heigth();
+
+	const size_t MAP_W = m_map->world_width();
+	const size_t MAP_H = m_map->world_heigth();
 
 	auto [x, y] = Math::map2_screen(MAP_W, MAP_H, viewport.w, viewport.h, m_position);
 

@@ -25,9 +25,8 @@ target_link_libraries(RC PRIVATE SDL2 SDL2_image SDL2_ttf)
 target_include_directories(RC PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 									  SDL2 SDL2_ttf SDL2_image)
 
-#-Wconversion
 add_executable(${PROJECT_NAME} src/main.cpp)
-target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Werror)
+target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Werror -Wconversion)
 target_link_libraries(${PROJECT_NAME} PRIVATE RC)
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 

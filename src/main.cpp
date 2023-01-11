@@ -13,9 +13,16 @@
 #include "Player.h"
 #include "Vec.h"
 
-#define VIEWPORT_W 1024
-#define VIEWPORT_H 728
+#define VIEWPORT_W Map::CELL_SIZE * 8
+#define VIEWPORT_H Map::CELL_SIZE * 8
 
+std::pair<int, int> world2screen(int x, int y){
+	const size_t MW = 8;
+	const size_t MH = MW;
+	int screen_x = x * (VIEWPORT_W / (MW * Map::CELL_SIZE));
+	int screen_y = y * (VIEWPORT_H / (MH * Map::CELL_SIZE));
+	return {screen_x, screen_y};
+}
 /*
 struct Point{
 	Point(Math::Vec2 pos, Render * render) : m_position(pos), m_render(render) {};
@@ -47,6 +54,7 @@ void Point::draw(const size_t vp_w, const size_t vp_h){
 
 
 
+/*
 void set_pixel(SDL_Surface * surface, uint32_t x, uint32_t y, uint8_t r, uint8_t g, uint8_t b){
 	SDL_LockSurface(surface);
 	uint8_t * pixels = (uint8_t *)surface->pixels;
@@ -62,6 +70,7 @@ void set_pixel(SDL_Surface * surface, uint32_t x, uint32_t y, uint8_t r, uint8_t
 
 	SDL_UnlockSurface(surface);
 };
+*/
 
 void init(){
 	int err = SDL_Init(SDL_INIT_VIDEO);
@@ -96,11 +105,11 @@ int main(){
 	SDL_Event event;
 
 	Map map(&render);
-	Player player(&render, &map, Math::Vec2(2.3f, 2.3f), Math::Vec2(1.0f, 0));
+	Player player(&render, &map, Math::Vec2(96.0f, 224.0f), Math::Vec2(1.0f, 0.0f));
 
 	render.set_viewport(0, 0, VIEWPORT_W, VIEWPORT_H);
 
-	RayCaster raycaster;
+	RayCaster raycaster(&render);
 	std::vector<Ray> casted_rays;
 	while(running){
 		SDL_PumpEvents(); // updates event queue
@@ -119,10 +128,19 @@ int main(){
 		render.clear();
 
 		map.draw();
+
 		player.draw();
-		casted_rays = raycaster.apply(map, player);
-		for(auto& r : casted_rays){
-			r.draw(render, map);
+		auto points = raycaster.cast(player, map);
+		for(auto [x, y] : points){
+			(void)x;
+			(void)y;
+			render.set_draw_color(0xff, 0xff, 0xff);
+
+			auto[x1, y1] = world2screen((int)player.position().x(), (int)player.position().y());
+			auto[x2, y2] = world2screen(x, y);
+
+			SDL_RenderDrawLine(render.renderer(), x1, y1, x2, y2);
+
 		}
 		render.update();
 	}
