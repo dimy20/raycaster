@@ -23,54 +23,6 @@ std::pair<int, int> world2screen(int x, int y){
 	int screen_y = y * (VIEWPORT_H / (MH * Map::CELL_SIZE));
 	return {screen_x, screen_y};
 }
-/*
-struct Point{
-	Point(Math::Vec2 pos, Render * render) : m_position(pos), m_render(render) {};
-	void draw(const size_t vp_w, const size_t vp_h);
-	Math::Vec2 m_position;
-	Render * m_render;
-};
-
-void Point::draw(const size_t vp_w, const size_t vp_h){
-	const size_t MAP_W = 24;
-	const size_t MAP_H = 24;
-
-	int x, y;
-	float map_2_screenX = (float)vp_w / (float)MAP_W;
-	float map_2_screenY = (float)vp_h / (float)MAP_H;
-
-	x = (int)(m_position.x * map_2_screenX); // mapping the map coordinate to viewport space.(proportion)
-	y = (int)(m_position.y * map_2_screenY); // mapping the map coordinate to viewport space.(proportion)
-
-	SDL_Rect rect;
-
-	size_t rect_w = 5;
-	size_t rect_h = 5;
-	rect = {x - (int)(rect_w / 2), y - (int)(rect_h / 2), (int)rect_w, (int)rect_h};
-	SDL_RenderFillRect(m_render->renderer(), &rect);
-}
-
-*/
-
-
-
-/*
-void set_pixel(SDL_Surface * surface, uint32_t x, uint32_t y, uint8_t r, uint8_t g, uint8_t b){
-	SDL_LockSurface(surface);
-	uint8_t * pixels = (uint8_t *)surface->pixels;
-	(void)pixels;
-
-	size_t pixel_size = surface->format->BytesPerPixel;
-	size_t offset = ((y * surface->w) + x) * pixel_size;
-
-	int values[4] = {r, g, b, 0xff};
-	for(size_t i = 0; i < pixel_size; i++){
-		pixels[offset + i] = values[i];
-	}
-
-	SDL_UnlockSurface(surface);
-};
-*/
 
 void init(){
 	int err = SDL_Init(SDL_INIT_VIDEO);
@@ -110,7 +62,6 @@ int main(){
 	render.set_viewport(0, 0, VIEWPORT_W, VIEWPORT_H);
 
 	RayCaster raycaster(&render);
-	std::vector<Ray> casted_rays;
 	while(running){
 		SDL_PumpEvents(); // updates event queue
 
