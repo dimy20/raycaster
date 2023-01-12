@@ -7,7 +7,8 @@
 #define PROJ_PLANE_W 320
 #define PROJ_PLANE_H 200
 
-HitPoint RayCaster::cast_horizontal_intercept(float ray_angle, int px, int py, const Map& map){
+
+HitPoint RayCaster::cast_horizontal_intercept(float ray_angle, const int px, const int py, const Map& map){
 	/* H is the point used to trace horizontal hits along the ray */
 	float Hx, Hy; 
 	/* Fixed step of size CELL_SIZE along y axis, direction depends on ray_angle*/
@@ -62,8 +63,7 @@ HitPoint RayCaster::cast_horizontal_intercept(float ray_angle, int px, int py, c
 		};
 
 		if(hit){
-			// distance to point of intersection
-			distance = std::abs(px - Hx) * cos(ray_angle);
+			distance = 0.0f;
 		}else{
 			distance = std::numeric_limits<float>::max();
 		}
@@ -76,7 +76,7 @@ HitPoint RayCaster::cast_horizontal_intercept(float ray_angle, int px, int py, c
 };
 
 
-HitPoint RayCaster::cast_vertical_intercept(float ray_angle, int px, int py, const Map& map){
+HitPoint RayCaster::cast_vertical_intercept(float ray_angle, const int px, const int py, const Map& map){
 	/* V is the point used to trace horizontal hits along the ray */
 	float Vx, Vy;
 	/* Fixed step of size CELL_SIZE along x axis, direction depends on ray_angle*/
@@ -122,7 +122,8 @@ HitPoint RayCaster::cast_vertical_intercept(float ray_angle, int px, int py, con
 				}
 		}
 		if(hit){
-			distance = std::abs(py - Vy) * sin(ray_angle);
+			//distance = std::abs(py - Vy) * sin(ray_angle);
+			distance = 0.0f;
 		}else{
 			distance = std::numeric_limits<float>::max();
 		}
@@ -134,6 +135,15 @@ HitPoint RayCaster::cast_vertical_intercept(float ray_angle, int px, int py, con
 	return {Vx, Vy, distance};
 
 };
+
+
+constexpr static float get_dx(const float ray_angle, const HitPoint& hit, const int px, const int py){
+	return (ray_angle < 90.0f || ray_angle > 270.0f) ? hit.x - px : px - hit.x;
+}
+
+constexpr static float get_dy(const float ray_angle, const HitPoint& hit, const int px, const int py){
+	return (ray_angle > 0 && ray_angle < 180.0f) ? py - hit.y : hit.y - py;
+}
 
 std::vector<std::pair<int , int >> RayCaster::cast(const Player& player, const Map& map){
 	const size_t proj_plane_dim = PROJ_PLANE_W * PROJ_PLANE_H;
@@ -159,17 +169,48 @@ std::vector<std::pair<int , int >> RayCaster::cast(const Player& player, const M
 	for(size_t i = 0; i < PROJ_PLANE_W; i++){
 		if(ray_angle < 0) ray_angle += 360.0f;
 
-		const auto& [px, py] = player.position().xy();
+		auto px = player.position().x();
+		auto py = player.position().y();
+		//const auto& [px, py] = player.position().xy();
+
 
 		auto h_hit = cast_horizontal_intercept(ray_angle, px, py, map);
 		if(h_hit.distance != std::numeric_limits<float>::max()){
+			//points.push_back({h_hit.x, h_hit.y});
+			float dx = get_dx(ray_angle, h_hit, px, py);
+			float dy = get_dy(ray_angle, h_hit, px, py);
+			h_hit.distance = std::abs((dx * cos(Math::to_rad(viewing_angle))) + (dy * sin(Math::to_rad(viewing_angle))));
+			//std::cout << "distance : " << h_hit.distance << "\n";
 			//UNIMPLEMENTED
 		}
 
 		auto v_hit = cast_vertical_intercept(ray_angle, px, py, map);
 		if(v_hit.distance != std::numeric_limits<float>::max()){
+			//points.push_back({v_hit.x, v_hit.y});
 			//UNIMPLEMENTED
+			float dx = get_dx(ray_angle, v_hit, px, py);
+			float dy = get_dy(ray_angle, v_hit, px, py);
+
+			// fish corrected
+			v_hit.distance = std::abs((dx * cos(Math::to_rad(viewing_angle))) + (dy * sin(Math::to_rad(viewing_angle))));
 		}
+
+		if(h_hit.distance < v_hit.distance){
+			points.push_back({h_hit.x, h_hit.y});
+			/*
+			if(ray_angle < 130.f){
+				std::cout << "h distance : " << h_hit.distance << " ";
+				std::cout << "v distance : " << v_hit.distance << " ";
+				std::cout << "angle: " << ray_angle << "\n";
+				std::cout << "view angle: " << viewing_angle << "\n";
+			}
+			*/
+		}else{
+			//std::cout << "distance : " << v_hit.distance << "\n";
+			points.push_back({v_hit.x, v_hit.y});
+		}
+
+
 
 		ray_angle += angle_step;
 		if(ray_angle >= 360) ray_angle -= 360.0f;

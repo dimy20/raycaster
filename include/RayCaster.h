@@ -18,9 +18,9 @@ class RayCaster{
 		std::vector<std::pair<int, int>> cast(const Player& player, const Map& map);
 	private:
 		/*Casts ray steping through horizontal intersections until hit.*/
-		HitPoint cast_horizontal_intercept(float ray_angle, int px, int py, const Map& map);
+		HitPoint cast_horizontal_intercept(float ray_angle, const int px, const int py, const Map& map);
 		/*Casts ray steping through vertical intersections until hit.*/
-		HitPoint cast_vertical_intercept(float ray_angle, int px, int py, const Map& map);
+		HitPoint cast_vertical_intercept(float ray_angle, const int px, const int py, const Map& map);
 	private:
 		Render * m_render;
 };

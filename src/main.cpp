@@ -57,7 +57,7 @@ int main(){
 	SDL_Event event;
 
 	Map map(&render);
-	Player player(&render, &map, Math::Vec2(96.0f, 224.0f), Math::Vec2(1.0f, 0.0f));
+	Player player(&render, &map, Math::Vec2(96.0f, 224.0f), Math::Vec2(-1.0f, 0.0f));
 
 	render.set_viewport(0, 0, VIEWPORT_W, VIEWPORT_H);
 
