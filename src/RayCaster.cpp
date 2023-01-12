@@ -86,7 +86,7 @@ HitPoint RayCaster::cast_vertical_intercept(float ray_angle, int px, int py, con
 	/* Distance from hit point to player position.*/
 	float distance;
 
-	if((ray_angle > 0 && ray_angle < 90) || (ray_angle < 0 &&  ray_angle > -90)){
+	if(ray_angle < 90 || ray_angle > 270){
 		/* Get first vertical hit point's x coordiante. */
 		Vx = (int)(px / Map::CELL_SIZE) * Map::CELL_SIZE + Map::CELL_SIZE;
 		step_x = Map::CELL_SIZE;
@@ -101,7 +101,7 @@ HitPoint RayCaster::cast_vertical_intercept(float ray_angle, int px, int py, con
 		Vx--;
 	}
 
-	if(ray_angle != 90 && ray_angle != -45 && ray_angle != 0){
+	if(ray_angle != 90 && ray_angle != 270){
 		/*At this point we step on y by this fixed amount. */
 		delta_step_y = -step_x * tan(Math::to_rad(ray_angle));
 		bool hit = false;
@@ -157,9 +157,7 @@ std::vector<std::pair<int , int >> RayCaster::cast(const Player& player, const M
 
 	std::vector<std::pair<int, int >> points;
 	for(size_t i = 0; i < PROJ_PLANE_W; i++){
-		/* Bounds */
-		if(ray_angle >= 180) ray_angle -= 360;
-		if(ray_angle <= -180) ray_angle += 360;
+		if(ray_angle < 0) ray_angle += 360.0f;
 
 		const auto& [px, py] = player.position().xy();
 
@@ -174,7 +172,8 @@ std::vector<std::pair<int , int >> RayCaster::cast(const Player& player, const M
 		}
 
 		ray_angle += angle_step;
+		if(ray_angle >= 360) ray_angle -= 360.0f;
 	}
 
 	return points;
-};
+}
