@@ -36,14 +36,12 @@ HitPoint RayCaster::cast_horizontal_intercept(float ray_angle, const int px, con
 		Hy = ((int)(py / Map::CELL_SIZE) * Map::CELL_SIZE) + Map::CELL_SIZE;
 		step_y = Map::CELL_SIZE;
 
-		/*Correct negative angles so we point in the correct direction*/
-		float alpha = -tan(Math::to_rad(ray_angle));
-		Hx = px + ((Hy - py) / alpha);
+		Hx = px + ((py - Hy) / tan(Math::to_rad(ray_angle)));
 	}
 
 	if(ray_angle != 0 && ray_angle != 180){
 		/*At this point we step on x by this fixed amount. */
-		delta_step_x = -step_y/ tan(Math::to_rad(ray_angle));
+		delta_step_x = -step_y / tan(Math::to_rad(ray_angle));
 		bool hit = false;
 		while(!hit){
 			int map_x = (int)(Hx / Map::CELL_SIZE);
@@ -97,7 +95,7 @@ HitPoint RayCaster::cast_vertical_intercept(float ray_angle, const int px, const
 		 * vertical line of the current cell.*/
 		Vx = (int)(px / Map::CELL_SIZE) * Map::CELL_SIZE;
 		step_x = -Map::CELL_SIZE;
-		Vy = py + ((px - Vx) * tan(Math::to_rad(ray_angle)));
+		Vy = py - ((Vx - px) * tan(Math::to_rad(ray_angle)));
 		Vx--;
 	}
 
@@ -122,7 +120,6 @@ HitPoint RayCaster::cast_vertical_intercept(float ray_angle, const int px, const
 				}
 		}
 		if(hit){
-			//distance = std::abs(py - Vy) * sin(ray_angle);
 			distance = 0.0f;
 		}else{
 			distance = std::numeric_limits<float>::max();
@@ -135,15 +132,6 @@ HitPoint RayCaster::cast_vertical_intercept(float ray_angle, const int px, const
 	return {Vx, Vy, distance};
 
 };
-
-
-constexpr static float get_dx(const float ray_angle, const HitPoint& hit, const int px, const int py){
-	return (ray_angle < 90.0f || ray_angle > 270.0f) ? hit.x - px : px - hit.x;
-}
-
-constexpr static float get_dy(const float ray_angle, const HitPoint& hit, const int px, const int py){
-	return (ray_angle > 0 && ray_angle < 180.0f) ? py - hit.y : hit.y - py;
-}
 
 std::vector<std::pair<int , int >> RayCaster::cast(const Player& player, const Map& map){
 	const size_t proj_plane_dim = PROJ_PLANE_W * PROJ_PLANE_H;
@@ -171,46 +159,27 @@ std::vector<std::pair<int , int >> RayCaster::cast(const Player& player, const M
 
 		auto px = player.position().x();
 		auto py = player.position().y();
-		//const auto& [px, py] = player.position().xy();
-
 
 		auto h_hit = cast_horizontal_intercept(ray_angle, px, py, map);
 		if(h_hit.distance != std::numeric_limits<float>::max()){
-			//points.push_back({h_hit.x, h_hit.y});
-			float dx = get_dx(ray_angle, h_hit, px, py);
-			float dy = get_dy(ray_angle, h_hit, px, py);
-			h_hit.distance = std::abs((dx * cos(Math::to_rad(viewing_angle))) + (dy * sin(Math::to_rad(viewing_angle))));
-			//std::cout << "distance : " << h_hit.distance << "\n";
-			//UNIMPLEMENTED
+			float dx = h_hit.x - px;
+			float dy = py - h_hit.y;
+			h_hit.distance = (dx * cos(Math::to_rad(viewing_angle))) + (dy * sin(Math::to_rad(viewing_angle)));
 		}
 
 		auto v_hit = cast_vertical_intercept(ray_angle, px, py, map);
 		if(v_hit.distance != std::numeric_limits<float>::max()){
-			//points.push_back({v_hit.x, v_hit.y});
-			//UNIMPLEMENTED
-			float dx = get_dx(ray_angle, v_hit, px, py);
-			float dy = get_dy(ray_angle, v_hit, px, py);
-
-			// fish corrected
-			v_hit.distance = std::abs((dx * cos(Math::to_rad(viewing_angle))) + (dy * sin(Math::to_rad(viewing_angle))));
+			float dx = v_hit.x - px;
+			float dy = py - v_hit.y;
+			v_hit.distance = (dx * cos(Math::to_rad(viewing_angle))) + (dy * sin(Math::to_rad(viewing_angle)));
 		}
 
+		//Just draw the closest ray for debug
 		if(h_hit.distance < v_hit.distance){
 			points.push_back({h_hit.x, h_hit.y});
-			/*
-			if(ray_angle < 130.f){
-				std::cout << "h distance : " << h_hit.distance << " ";
-				std::cout << "v distance : " << v_hit.distance << " ";
-				std::cout << "angle: " << ray_angle << "\n";
-				std::cout << "view angle: " << viewing_angle << "\n";
-			}
-			*/
 		}else{
-			//std::cout << "distance : " << v_hit.distance << "\n";
 			points.push_back({v_hit.x, v_hit.y});
 		}
-
-
 
 		ray_angle += angle_step;
 		if(ray_angle >= 360) ray_angle -= 360.0f;
