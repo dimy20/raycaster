@@ -7,7 +7,6 @@
 #define PROJ_PLANE_W 320
 #define PROJ_PLANE_H 200
 
-
 HitPoint RayCaster::cast_horizontal_intercept(float ray_angle, const int px, const int py, const Map& map){
 	/* H is the point used to trace horizontal hits along the ray */
 	float Hx, Hy; 
@@ -133,6 +132,26 @@ HitPoint RayCaster::cast_vertical_intercept(float ray_angle, const int px, const
 
 };
 
+/* This function gets the perpedicular distance to the wall,
+   That is the distance along the player's view direction, we'll use this distance to calculate
+   the perspective on the walls, if we used the distance from the point of intersection to the player's
+   position instead we get a fish eye effect, this makes sense since the farther to the right or left the point is
+   the higher the depth value will be, so we draw a smaller wall slice. Since the screen is flat we wont use this value
+   however we can correct this effect by using the perpendicular distance to the wall.
+   The formula is derived using 3 angles:
+   theta -> The viewing direction angle
+   alpha-> the ray angle
+   beta-> the angle between the ray and the viewing direction
+   D = dist(p, hit) (the distance we dont want to use)
+   then -> perp_dist = D * cos(beta) = D * cos(alpha - theta)
+   Using cos(a - b) identity and the point found hit we derive the formula bellow.*/
+
+static float get_perpendicular_distance(float viewing_angle, float px, float py, float hit_x, float hit_y){
+	float dx = hit_x - px;
+	float dy = py - hit_y;
+	return (dx * cos(Math::to_rad(viewing_angle))) + (dy * sin(Math::to_rad(viewing_angle)));
+}
+
 std::vector<std::pair<int , int >> RayCaster::cast(const Player& player, const Map& map){
 	const size_t proj_plane_dim = PROJ_PLANE_W * PROJ_PLANE_H;
 	Math::Vec2 proj_plane_center(PROJ_PLANE_W / 2, PROJ_PLANE_H / 2);
@@ -151,7 +170,7 @@ std::vector<std::pair<int , int >> RayCaster::cast(const Player& player, const M
 	auto dir = player.direction();
 	float viewing_angle = Math::to_deg(dir.angle());
 
-	float ray_angle = viewing_angle - (FOV / 2); // start at the left end of the fov arc
+	float ray_angle = viewing_angle + (FOV / 2); // start at the left end of the fov arc
 
 	std::vector<std::pair<int, int >> points;
 	for(size_t i = 0; i < PROJ_PLANE_W; i++){
@@ -162,16 +181,12 @@ std::vector<std::pair<int , int >> RayCaster::cast(const Player& player, const M
 
 		auto h_hit = cast_horizontal_intercept(ray_angle, px, py, map);
 		if(h_hit.distance != std::numeric_limits<float>::max()){
-			float dx = h_hit.x - px;
-			float dy = py - h_hit.y;
-			h_hit.distance = (dx * cos(Math::to_rad(viewing_angle))) + (dy * sin(Math::to_rad(viewing_angle)));
+			h_hit.distance = get_perpendicular_distance(viewing_angle, px, py, h_hit.x, h_hit.y);
 		}
 
 		auto v_hit = cast_vertical_intercept(ray_angle, px, py, map);
 		if(v_hit.distance != std::numeric_limits<float>::max()){
-			float dx = v_hit.x - px;
-			float dy = py - v_hit.y;
-			v_hit.distance = (dx * cos(Math::to_rad(viewing_angle))) + (dy * sin(Math::to_rad(viewing_angle)));
+			v_hit.distance = get_perpendicular_distance(viewing_angle, px, py, v_hit.x, v_hit.y);
 		}
 
 		//Just draw the closest ray for debug
@@ -181,7 +196,7 @@ std::vector<std::pair<int , int >> RayCaster::cast(const Player& player, const M
 			points.push_back({v_hit.x, v_hit.y});
 		}
 
-		ray_angle += angle_step;
+		ray_angle -= angle_step;
 		if(ray_angle >= 360) ray_angle -= 360.0f;
 	}
 
