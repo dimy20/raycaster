@@ -23,13 +23,14 @@ void Engine::init(){
 
 void Engine::do_input(){
 	SDL_Event e;
-	SDL_PumpEvents(); // updates event queue
+	SDL_PumpEvents();
 	while(SDL_PollEvent(&e)){
-		if(e.type == SDL_QUIT){
-			m_running = false;
-		};
-		if(e.type == SDL_KEYDOWN){
-			m_player.keypressed(e.key.keysym.sym);
+		switch(e.type){
+			case SDL_QUIT:
+				m_running = false;
+				break;
+			default:
+				break;
 		}
 	};
 }
@@ -38,18 +39,22 @@ void Engine::run(){
 	m_renderer.set_viewport({0, 0, VIEWPORT_H, VIEWPORT_W}, "map");
 	m_renderer.set_viewport({Map::CELL_SIZE * 8, 0, PROJ_PLANE_W, PROJ_PLANE_H}, "scene");
 	m_map = Map(&m_renderer);
-	m_player = Player(&m_renderer, &m_map, Math::Vec2(96.0f, 224.0f), Math::Vec2(-1.0f, 0.0f));
+	m_player = Player(this, &m_renderer, &m_map, Math::Vec2(96.0f, 224.0f), Math::Vec2(-1.0f, 0.0f));
 
 	m_caster = RayCaster(&m_renderer);
 	m_caster.init(PROJ_PLANE_W, PROJ_PLANE_H);
+
+	int n;
+	m_keyboard_state = SDL_GetKeyboardState(&n);
 
 	while(m_running){
 		m_renderer.prepare_scene();
 		do_input();
 
-		m_map.draw();
-
+		m_player.update();
 		m_player.draw();
+
+		m_map.draw();
 		m_caster.render(m_player, m_map);
 
 		m_renderer.present_scene();

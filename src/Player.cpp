@@ -1,14 +1,16 @@
 #include <iostream>
+
+#include "Engine.h"
 #include "Player.h"
 
-Player::Player(Render * render, Map * map, Math::Vec2 position, Math::Vec2 direction){
+Player::Player(Engine * engine, Render * render, Map * map, Math::Vec2 position, Math::Vec2 direction){
 	// TODO: position should never exceed map boundaries!
 	m_position = position;
 	m_direction = direction;
-	m_camera_plane = Math::Vec2(0.0f, 0.66f);
 	m_render = render;
 	m_direction.normalize();
 	m_map = map;
+	m_engine = engine;
 }
 
 void Player::draw(){
@@ -27,24 +29,28 @@ void Player::draw(){
 	SDL_RenderFillRect(m_render->renderer(), &m_rect);
 };
 
+void Player::update(){
 
-void Player::keypressed(const SDL_Keycode& key){
 	Math::Vec2 new_pos;
-	switch(key){
-		case SDLK_w:
-			new_pos = m_position + (m_direction * MOV_SPEED);
-			break;
-		case SDLK_s:
-			new_pos = m_position + (m_direction * -MOV_SPEED);
-			break;
-		case SDLK_d:
-			m_direction.rotate(Math::to_rad(ROTATION_SPEED));
-			m_camera_plane.rotate(Math::to_rad(ROTATION_SPEED));
-			break;
-		case SDLK_a:
-			m_direction.rotate(Math::to_rad(-ROTATION_SPEED));
-			m_camera_plane.rotate(Math::to_rad(-ROTATION_SPEED));
-			break;
+	auto keyboard = m_engine->keyboard_input();
+	if(keyboard[SDL_SCANCODE_D]){
+		m_direction.rotate(Math::to_rad(-ROTATION_SPEED));
+	}
+	if(keyboard[SDL_SCANCODE_A]){
+		m_direction.rotate(Math::to_rad(ROTATION_SPEED));
+	}
+
+	Math::Vec2 temp = m_direction;
+	auto& [tempx, tempy] = temp.xy();
+	(void)tempx;
+	tempy *= -1;
+	
+	if(keyboard[SDL_SCANCODE_W]){
+		new_pos = m_position + (temp * MOV_SPEED);
+	}
+
+	if(keyboard[SDL_SCANCODE_S]){
+		new_pos = m_position + (temp * -MOV_SPEED);
 	}
 
 	int x = new_pos.x() / Map::CELL_SIZE;
@@ -52,4 +58,5 @@ void Player::keypressed(const SDL_Keycode& key){
 	if(m_map->at(x, y) == 0){
 		m_position = new_pos;
 	}
+
 };

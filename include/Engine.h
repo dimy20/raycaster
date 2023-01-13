@@ -21,6 +21,8 @@ class Engine{
 		Engine() = default;
 		void init();
 		void run();
+		const uint8_t * keyboard_input() const { return m_keyboard_state; };
+	private:
 		void do_input();
 	private:
 		Render m_renderer;
@@ -29,4 +31,5 @@ class Engine{
 		Player m_player;
 		RayCaster m_caster;
 		bool m_running = true;
+		const uint8_t * m_keyboard_state = NULL;
 };
