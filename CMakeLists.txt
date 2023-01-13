@@ -11,7 +11,8 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/deps/SDL_image)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/deps/SDL_ttf)
 add_subdirectory(tests)
 
-add_library(RC STATIC src/Texture.cpp
+add_library(RC STATIC src/Engine.cpp
+					  src/Texture.cpp
 					  src/Timer.cpp
 					  src/Window.cpp
 					  src/Render.cpp

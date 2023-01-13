@@ -9,6 +9,7 @@
 
 class Player{
 	public:
+		Player() = default;
 		Player(Render * render, Map * map, Math::Vec2 position, Math::Vec2 direction);
 		void draw();
 		Math::Vec2 direction () const { return m_direction; };

@@ -6,6 +6,7 @@
 
 class Map{
 	public:
+		Map() = default;
 		Map(Render * render);
 		void draw();
 		void temp_ray_casting();
