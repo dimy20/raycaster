@@ -19,10 +19,13 @@ void Render::clear(){ SDL_RenderClear(m_renderer.get()); };
 
 void Render::update(){ SDL_RenderPresent(m_renderer.get()); };
 
-void Render::set_viewport(int x, int y, int w, int h){
-	SDL_Rect viewport = {x, y, w, h};
+void Render::use_viewport(const std::string& id){
+	assert(m_viewports.find(id) != m_viewports.end());
+	SDL_Rect viewport = m_viewports[id];
 	SDL_RenderSetViewport(renderer(), &viewport);
 };
+
+void Render::set_viewport(SDL_Rect viewport, const std::string& id){ m_viewports[id] = viewport; }
 
 SDL_Rect Render::viewport() const {
 	SDL_Rect rect;

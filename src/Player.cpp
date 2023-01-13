@@ -47,7 +47,9 @@ void Player::keypressed(const SDL_Keycode& key){
 			break;
 	}
 
-	if(m_map->at((int)new_pos.x(), (int)new_pos.y()) == 0){
+	int x = new_pos.x() / Map::CELL_SIZE;
+	int y = new_pos.y() / Map::CELL_SIZE;
+	if(m_map->at(x, y) == 0){
 		m_position = new_pos;
 	}
 };

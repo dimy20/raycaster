@@ -4,7 +4,7 @@
 #include "Map.h"
 #include "Vec.h"
 
-#define MOV_SPEED 0.1
+#define MOV_SPEED 2.0f
 #define ROTATION_SPEED 2.0f
 
 class Player{

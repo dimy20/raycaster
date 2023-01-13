@@ -13,18 +13,10 @@
 #include "Player.h"
 #include "Vec.h"
 
-#define PROJ_PLANE_W 320
-#define PROJ_PLANE_H 200
+#define PROJ_PLANE_W 400
+#define PROJ_PLANE_H 222
 #define VIEWPORT_W Map::CELL_SIZE * 8
 #define VIEWPORT_H Map::CELL_SIZE * 8
-
-std::pair<int, int> world2screen(int x, int y){
-	const size_t MW = 8;
-	const size_t MH = MW;
-	int screen_x = x * (VIEWPORT_W / (MW * Map::CELL_SIZE));
-	int screen_y = y * (VIEWPORT_H / (MH * Map::CELL_SIZE));
-	return {screen_x, screen_y};
-}
 
 void init(){
 	int err = SDL_Init(SDL_INIT_VIDEO);
@@ -53,6 +45,9 @@ int main(){
 	Render render;
 	render.init(window);
 
+	render.set_viewport({0, 0, VIEWPORT_H, VIEWPORT_W}, "map");
+	render.set_viewport({Map::CELL_SIZE * 8, 0, PROJ_PLANE_W, PROJ_PLANE_H}, "scene");
+
 	window.update();
 
 	bool running = true;
@@ -61,10 +56,8 @@ int main(){
 	Map map(&render);
 	Player player(&render, &map, Math::Vec2(96.0f, 224.0f), Math::Vec2(-1.0f, 0.0f));
 
-
-
-	RayCaster raycaster(&render);
-	raycaster.init(PROJ_PLANE_W, PROJ_PLANE_H);
+	RayCaster caster(&render);
+	caster.init(PROJ_PLANE_W, PROJ_PLANE_H);
 
 	while(running){
 		SDL_PumpEvents(); // updates event queue
@@ -79,28 +72,13 @@ int main(){
 			}
 		};
 
-		render.set_viewport(0, 0, VIEWPORT_W, VIEWPORT_H);
 		render.set_draw_color(0, 0, 0);
 		render.clear();
 
 		map.draw();
 
 		player.draw();
-		auto points = raycaster.cast(player, map);
-
-		render.set_viewport(0, 0, VIEWPORT_W, VIEWPORT_H);
-		for(auto [x, y] : points){
-			(void)x;
-			(void)y;
-			render.set_draw_color(0xff, 0xff, 0xff);
-
-			auto[x1, y1] = world2screen((int)player.position().x(), (int)player.position().y());
-			auto[x2, y2] = world2screen(x, y);
-
-			SDL_RenderDrawLine(render.renderer(), x1, y1, x2, y2);
-
-
-		}
+		caster.render(player, map);
 
 		render.update();
 	}
