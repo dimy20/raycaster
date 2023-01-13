@@ -22,8 +22,6 @@ void Render::update(){ SDL_RenderPresent(m_renderer.get()); };
 void Render::set_viewport(int x, int y, int w, int h){
 	SDL_Rect viewport = {x, y, w, h};
 	SDL_RenderSetViewport(renderer(), &viewport);
-	set_draw_color(0xff, 0xff, 0xff);
-	//SDL_RenderDrawRect(m_renderer.get(), &viewport);
 };
 
 SDL_Rect Render::viewport() const {

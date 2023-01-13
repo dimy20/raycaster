@@ -2,10 +2,14 @@
 #include "Player.h"
 #include <limits>
 
-#define FOV 60.0
-#define PLAYER_HEIGHT 32
-#define PROJ_PLANE_W 320
-#define PROJ_PLANE_H 200
+void RayCaster::init(int plane_w, int plane_h){
+	m_plane_width = plane_w;
+	m_plane_height = plane_h;
+	m_plane_center = plane_h / 2;
+	m_angle_step = FOV / (float)plane_w;
+	m_plane_dim = plane_w * plane_h;
+	m_player_plane_dist = static_cast<size_t>((plane_w / 2) / tan(Math::to_rad(FOV / 2)));
+};
 
 HitPoint RayCaster::cast_horizontal_intercept(float ray_angle, const int px, const int py, const Map& map){
 	/* H is the point used to trace horizontal hits along the ray */
@@ -52,6 +56,10 @@ HitPoint RayCaster::cast_horizontal_intercept(float ray_angle, const int px, con
 				break;
 			}else if(map.at(map_x, map_y) > 0){ // HIT ?
 				hit = true;
+				if(map.at(map_x, map_y) == 1)
+					m_render->set_draw_color(0xff, 0, 0);
+				else
+					m_render->set_draw_color(0, 0xff, 0);
 			}else{
 				/*Move the point along the ray direction to the next Horizontal intersection*/
 				Hx += delta_step_x;
@@ -112,6 +120,10 @@ HitPoint RayCaster::cast_vertical_intercept(float ray_angle, const int px, const
 					break;
 				}else if(map.at(map_x, map_y)){
 					hit = true;
+					if(map.at(map_x, map_y) == 1)
+						m_render->set_draw_color(0xff, 0, 0);
+					else
+						m_render->set_draw_color(0, 0xff, 0);
 				}else{
 					// step
 					Vx += step_x;
@@ -152,28 +164,34 @@ static float get_perpendicular_distance(float viewing_angle, float px, float py,
 	return (dx * cos(Math::to_rad(viewing_angle))) + (dy * sin(Math::to_rad(viewing_angle)));
 }
 
+/* Based on a distance depth and the current colum, draw a wall slice with appropriate perspective.*/
+void RayCaster::draw_wall_slice(const float dist_to_slice, int col){
+	int projected_slice_height;
+
+	/*Derived from similar triangle relation. */
+	projected_slice_height = static_cast<int>((Map::CELL_SIZE * (float)m_player_plane_dist) / dist_to_slice);
+
+	int wall_bottom = (projected_slice_height / 2) + m_plane_center;
+	//int wall_top = m_plane_center - (projected_slice_height / 2);
+	int wall_top = m_plane_height - wall_bottom;
+
+	if(wall_top < 0 ) wall_top = 0;
+	if(wall_bottom >= m_plane_height) wall_bottom = m_plane_height - 1;
+
+	SDL_RenderDrawLine(m_render->renderer(), col, wall_top, col, wall_bottom);
+};
+
 std::vector<std::pair<int , int >> RayCaster::cast(const Player& player, const Map& map){
-	const size_t proj_plane_dim = PROJ_PLANE_W * PROJ_PLANE_H;
-	Math::Vec2 proj_plane_center(PROJ_PLANE_W / 2, PROJ_PLANE_H / 2);
-
-	// distance from player position to the projection plane
-	const size_t proj_plane_dist = static_cast<size_t>((PROJ_PLANE_W / 2) / tan(Math::to_rad(FOV / 2)));
-
-	/* FOV / NUM_COLUMS = The angle each ray spans for a colum*/
-	const float angle_step = FOV / (float)PROJ_PLANE_W;
-
-	(void)proj_plane_dim;
-	(void)proj_plane_center;
-	(void)proj_plane_dist;
-
-
 	auto dir = player.direction();
 	float viewing_angle = Math::to_deg(dir.angle());
 
 	float ray_angle = viewing_angle + (FOV / 2); // start at the left end of the fov arc
 
 	std::vector<std::pair<int, int >> points;
-	for(size_t i = 0; i < PROJ_PLANE_W; i++){
+
+	m_render->set_viewport(Map::CELL_SIZE * 8, 0, 320, 200);
+
+	for(int col = 0; col < m_plane_width; col++){
 		if(ray_angle < 0) ray_angle += 360.0f;
 
 		auto px = player.position().x();
@@ -189,6 +207,8 @@ std::vector<std::pair<int , int >> RayCaster::cast(const Player& player, const M
 			v_hit.distance = get_perpendicular_distance(viewing_angle, px, py, v_hit.x, v_hit.y);
 		}
 
+		float distance = std::min(h_hit.distance, v_hit.distance);
+
 		//Just draw the closest ray for debug
 		if(h_hit.distance < v_hit.distance){
 			points.push_back({h_hit.x, h_hit.y});
@@ -196,9 +216,12 @@ std::vector<std::pair<int , int >> RayCaster::cast(const Player& player, const M
 			points.push_back({v_hit.x, v_hit.y});
 		}
 
-		ray_angle -= angle_step;
+		draw_wall_slice(distance, col);
+
+		ray_angle -= m_angle_step;
 		if(ray_angle >= 360) ray_angle -= 360.0f;
 	}
 
 	return points;
 }
+

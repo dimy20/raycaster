@@ -13,6 +13,8 @@
 #include "Player.h"
 #include "Vec.h"
 
+#define PROJ_PLANE_W 320
+#define PROJ_PLANE_H 200
 #define VIEWPORT_W Map::CELL_SIZE * 8
 #define VIEWPORT_H Map::CELL_SIZE * 8
 
@@ -59,9 +61,11 @@ int main(){
 	Map map(&render);
 	Player player(&render, &map, Math::Vec2(96.0f, 224.0f), Math::Vec2(-1.0f, 0.0f));
 
-	render.set_viewport(0, 0, VIEWPORT_W, VIEWPORT_H);
+
 
 	RayCaster raycaster(&render);
+	raycaster.init(PROJ_PLANE_W, PROJ_PLANE_H);
+
 	while(running){
 		SDL_PumpEvents(); // updates event queue
 
@@ -75,6 +79,7 @@ int main(){
 			}
 		};
 
+		render.set_viewport(0, 0, VIEWPORT_W, VIEWPORT_H);
 		render.set_draw_color(0, 0, 0);
 		render.clear();
 
@@ -82,6 +87,8 @@ int main(){
 
 		player.draw();
 		auto points = raycaster.cast(player, map);
+
+		render.set_viewport(0, 0, VIEWPORT_W, VIEWPORT_H);
 		for(auto [x, y] : points){
 			(void)x;
 			(void)y;
@@ -92,7 +99,9 @@ int main(){
 
 			SDL_RenderDrawLine(render.renderer(), x1, y1, x2, y2);
 
+
 		}
+
 		render.update();
 	}
 	return 0;
