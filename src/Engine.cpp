@@ -41,7 +41,7 @@ void Engine::run(){
 	m_map = Map(&m_renderer);
 	m_player = Player(this, &m_renderer, &m_map, Math::Vec2(96.0f, 224.0f), Math::Vec2(-1.0f, 0.0f));
 
-	m_caster = RayCaster(&m_renderer);
+	m_caster = RayCaster(&m_renderer, &m_map);
 	m_caster.init(PROJ_PLANE_W, PROJ_PLANE_H);
 
 	int n;

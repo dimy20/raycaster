@@ -74,6 +74,7 @@ float RayCaster::cast_horizontal_intercept(float ray_angle, const int px, const 
 
 	distance = std::numeric_limits<float>::max();
 
+	m_hcell_id = 0;
 	if(ray_angle != 0 && ray_angle != 180){
 		/*At this point we step on x by this fixed amount. */
 		delta_step_x = -step_y / tan(Math::to_rad(ray_angle));
@@ -88,10 +89,7 @@ float RayCaster::cast_horizontal_intercept(float ray_angle, const int px, const 
 			}else if(map.at(map_x, map_y) > 0){ // HIT ?
 				hit = true;
 				distance = get_perpendicular_distance(m_viewing_angle, px, py, m_hitHx, m_hitHy);
-				if(map.at(map_x, map_y) == 1)
-					m_render->set_draw_color(0xff, 0, 0);
-				else
-					m_render->set_draw_color(0, 0xff, 0);
+				m_hcell_id = map.at(map_x, map_y);
 			}else{
 				/*Move the point along the ray direction to the next Horizontal intersection*/
 				m_hitHx += delta_step_x;
@@ -131,6 +129,7 @@ float RayCaster::cast_vertical_intercept(float ray_angle, const int px, const in
 	// assume failure
 	distance = std::numeric_limits<float>::max();
 
+	m_vcell_id = 0;
 	if(ray_angle != 90 && ray_angle != 270){
 		/*At this point we step on y by this fixed amount. */
 		delta_step_y = -step_x * tan(Math::to_rad(ray_angle));
@@ -146,11 +145,7 @@ float RayCaster::cast_vertical_intercept(float ray_angle, const int px, const in
 				}else if(map.at(map_x, map_y)){
 					hit = true;
 					distance = get_perpendicular_distance(m_viewing_angle, px, py, m_hitVx, m_hitVy);
-
-					if(map.at(map_x, map_y) == 1)
-						m_render->set_draw_color(0xff, 0, 0);
-					else
-						m_render->set_draw_color(0, 0xff, 0);
+					m_vcell_id = map.at(map_x, map_y);
 				}else{
 					// step
 					m_hitVx += step_x;
@@ -165,7 +160,7 @@ float RayCaster::cast_vertical_intercept(float ray_angle, const int px, const in
 
 
 /* Based on a distance depth and the current colum, draw a wall slice with appropriate perspective.*/
-void RayCaster::draw_wall_slice(const float dist_to_slice, int col){
+void RayCaster::draw_wall_slice(const float dist_to_slice, int col, int cell_id){
 	int projected_slice_height;
 
 	/*Derived from similar triangle relation. */
@@ -178,7 +173,21 @@ void RayCaster::draw_wall_slice(const float dist_to_slice, int col){
 	if(wall_top < 0 ) wall_top = 0;
 	if(wall_bottom >= m_plane_height) wall_bottom = m_plane_height - 1;
 
-	SDL_RenderDrawLine(m_render->renderer(), col, wall_top, col, wall_bottom);
+	Cell cell = m_map->cell_table()[cell_id];
+
+	if(!cell.texture){
+		uint8_t r, g, b;
+
+		r = cell.color >> 24;
+		g = cell.color >> 16;
+		b = cell.color >> 8;
+
+		m_render->set_draw_color(r, g, b);
+		SDL_RenderDrawLine(m_render->renderer(), col, wall_top, col, wall_bottom);
+	}else{
+		std::cout << "Map texture to wall: UNINPLEMENTED\n";
+	}
+
 };
 
 void RayCaster::render(const Player& player, const Map& map){
@@ -199,15 +208,18 @@ void RayCaster::render(const Player& player, const Map& map){
 
 		float distance = std::min(h_distance, v_distance);
 
-		draw_wall_slice(distance, col);
-
-		if(m_draw_rays){
-			if(h_distance < v_distance){
+		int cell_id;
+		if(h_distance < v_distance){
+			cell_id = m_hcell_id;
+			if(m_draw_rays)
 				m_points[col] = {m_hitHx, m_hitHy};
-			}else{
+		}else{
+			cell_id = m_vcell_id;
+			if(m_draw_rays)
 				m_points[col] = {m_hitVx, m_hitVy};
-			}
 		}
+
+		draw_wall_slice(distance, col, cell_id);
 
 		ray_angle -= m_angle_step;
 		if(ray_angle >= 360) ray_angle -= 360.0f;

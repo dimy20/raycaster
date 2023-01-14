@@ -16,6 +16,10 @@ Map::Map(Render * render){
 		{1, 0, 0, 0, 0, 0, 0, 1},
 		{1, 1, 1, 1, 1, 1, 1, 1},
 	};
+
+	m_cells[1] = {CellType::WALL, NULL, 0xff000000};
+	m_cells[2] = {CellType::WALL, NULL, 0x00ff0000};
+
 }
 
 void Map::draw(){

@@ -13,10 +13,10 @@ class Player;
 class RayCaster{
 	public:
 		RayCaster() = default;
-		RayCaster(Render * render) : m_render(render) {};
+		RayCaster(Render * render, Map * map) : m_render(render), m_map(map) {};
 		void render(const Player& player, const Map& map);
 		void init(int plane_w, int plane_h);
-		void draw_wall_slice(const float dist_to_slice, int col);
+		void draw_wall_slice(const float dist_to_slice, int col, int cell_id);
 	private:
 		/*Casts ray steping through horizontal intersections until hit.*/
 		float cast_horizontal_intercept(float ray_angle, const int px, const int py, const Map& map);
@@ -24,6 +24,8 @@ class RayCaster{
 		float cast_vertical_intercept(float ray_angle, const int px, const int py, const Map& map);
 	private:
 		Render * m_render;
+		Map * m_map;
+
 		int m_plane_dim;
 		int m_plane_center;
 		int m_plane_width;
@@ -37,6 +39,9 @@ class RayCaster{
 
 		float m_hitVx;
 		float m_hitVy;
+
+		int m_hcell_id = 0;
+		int m_vcell_id = 0;
 
 		bool m_draw_rays = true;
 		std::vector<std::pair<int, int>> m_points;
