@@ -41,12 +41,23 @@ void Engine::run(){
 	m_map = Map(&m_renderer);
 	m_player = Player(this, &m_renderer, &m_map, Math::Vec2(96.0f, 224.0f), Math::Vec2(-1.0f, 0.0f));
 
-	m_caster = RayCaster(&m_renderer, &m_map);
+	FrameBuffer framebuffer(m_renderer.renderer(), PROJ_PLANE_W, PROJ_PLANE_H);
+
+	m_caster = RayCaster(&m_renderer, &m_map, &framebuffer);
 	m_caster.init(PROJ_PLANE_W, PROJ_PLANE_H);
+
+	SDL_Surface * srfc = IMG_Load("Wolf3d.png");
+	if(!srfc){
+		std::cerr << "Failed to load texture: " << SDL_GetError() << "\n";
+		exit(1);
+	}
 
 	int n;
 	m_keyboard_state = SDL_GetKeyboardState(&n);
 
+
+
+	framebuffer.update_texture();
 	while(m_running){
 		m_renderer.prepare_scene();
 		do_input();
@@ -55,9 +66,11 @@ void Engine::run(){
 		m_player.draw();
 
 		m_map.draw();
+
 		m_caster.render(m_player, m_map);
 
 		m_renderer.present_scene();
+		SDL_Delay(16);
 
 	}
 }

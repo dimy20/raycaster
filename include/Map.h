@@ -11,7 +11,7 @@ enum CellType{
 
 struct Cell{
 	CellType type;
-	SDL_Texture * texture;
+	SDL_Surface * texture;
 	uint32_t color;
 };
 

@@ -10,19 +10,27 @@ Map::Map(Render * render){
 		{1, 1, 1, 1, 1, 1, 1, 1},
 		{1, 0, 0, 0, 0, 0, 0, 1},
 		{1, 0, 0, 2, 0, 2, 0, 1},
-		{1, 0, 0, 2, 0, 2, 0, 1},
-		{1, 0, 0, 2, 0, 2, 0, 1},
 		{1, 0, 0, 2, 2, 2, 0, 1},
+		{1, 0, 0, 0, 0, 0, 0, 1},
+		{1, 0, 0, 0, 3, 0, 0, 1},
 		{1, 0, 0, 0, 0, 0, 0, 1},
 		{1, 1, 1, 1, 1, 1, 1, 1},
 	};
 
+
+	SDL_Surface * tmp = IMG_Load("wall.png");
+	SDL_Surface * wall = SDL_ConvertSurfaceFormat(tmp, SDL_PIXELFORMAT_ABGR8888, 0);
+	SDL_FreeSurface(tmp);
+	//SDL_
+
 	m_cells[1] = {CellType::WALL, NULL, 0xff000000};
 	m_cells[2] = {CellType::WALL, NULL, 0x00ff0000};
+	m_cells[3] = {CellType::WALL, wall, 0x0000ff00};
 
 }
 
 void Map::draw(){
+	m_render->use_viewport("map");
 	SDL_Rect viewport = m_render->viewport();
 	// Want to draw each cell relative to the viewports dimensions!
 	// Independer to whatever the viewports dimensions might be.

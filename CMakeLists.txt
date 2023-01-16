@@ -19,6 +19,7 @@ add_library(RC STATIC src/Engine.cpp
 					  src/Map.cpp
 					  src/Player.cpp
 					  src/RayCaster.cpp
+					  src/FrameBuffer.cpp
 					  src/Vec.cpp)
 
 target_compile_options(RC PRIVATE -Wall -Werror)

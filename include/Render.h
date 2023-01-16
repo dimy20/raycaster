@@ -1,10 +1,17 @@
 #pragma once
 
+#include <iostream>
 #include <memory>
 #include <cassert>
 #include <unordered_map>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+
 #include "Window.h"
+
+#define DIE(s) do { \
+	std::cerr << s << "\n";\
+}while(0); \
 
 class Render{
 	public:
@@ -17,6 +24,7 @@ class Render{
 		void present_scene();
 		SDL_Rect viewport() const;
 		SDL_Renderer * renderer() const { return m_renderer.get(); };
+		SDL_Texture * load_texture(const std::string& filename);
 	private:
 		std::shared_ptr<SDL_Renderer> m_renderer;
 		std::unordered_map<std::string, SDL_Rect> m_viewports;

@@ -1,7 +1,6 @@
-#include "Texture.h"
+#include "Texture.h" 
 
-TTF_Font * g_font = NULL;
-
+TTF_Font * g_font = NULL; 
 Texture::Texture(Render * render){
 	m_texture = nullptr;
 	m_w = 0;

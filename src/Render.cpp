@@ -34,3 +34,12 @@ void Render::prepare_scene(){
 	SDL_RenderClear(m_renderer.get());
 }
 void Render::present_scene(){ SDL_RenderPresent(m_renderer.get()); }
+
+SDL_Texture * Render::load_texture(const std::string& filename){
+	SDL_Texture * texture;
+	texture = IMG_LoadTexture(m_renderer.get(), filename.c_str());
+	if(!texture){
+		DIE("Failed to load texture " << filename);
+	}
+	return texture;
+}

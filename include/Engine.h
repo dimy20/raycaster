@@ -10,6 +10,7 @@
 #include "Map.h"
 #include "Player.h"
 #include "RayCaster.h"
+#include "FrameBuffer.h"
 
 #define PROJ_PLANE_W 400
 #define PROJ_PLANE_H 222

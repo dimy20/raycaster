@@ -13,6 +13,8 @@ std::pair<int, int> world2screen2(const int x, const int y){
 	return {screen_x, screen_y};
 }
 
+
+
 void RayCaster::init(int plane_w, int plane_h){
 	m_plane_width = plane_w;
 	m_plane_height = plane_h;
@@ -158,9 +160,38 @@ float RayCaster::cast_vertical_intercept(float ray_angle, const int px, const in
 	return distance;
 };
 
+void RayCaster::column_map_texture(SDL_Surface * texture, int texture_x, int column_height, int screen_column){
+	assert(texture != NULL);
+	uint8_t * pixels = reinterpret_cast<uint8_t *>(texture->pixels);
+
+	int pixel_y;
+	int texture_y;
+	int pixel_offset;
+
+	uint8_t r, g, b;
+	size_t texture_size = texture->w;
+
+	for(int i = 0; i < column_height; i++){
+		// location of this texture pixel on screen?
+		pixel_y = i + (m_plane_center - column_height / 2);
+		if(pixel_y >= 0 && pixel_y < m_plane_height){
+
+			/*Makes the following mapping of values from [0, size] -> [0, column_height]
+			 *Scaling the original texture to column height*/
+			texture_y = (int)((i * texture_size) / column_height);
+			pixel_offset = ((texture_y * texture->w) + texture_x) * 4;
+
+			r = pixels[pixel_offset];
+			g = pixels[pixel_offset + 1];
+			b = pixels[pixel_offset + 2];
+
+			m_framebuffer->set_pixel(screen_column, pixel_y, r, g, b);
+		}
+	}
+};
 
 /* Based on a distance depth and the current colum, draw a wall slice with appropriate perspective.*/
-void RayCaster::draw_wall_slice(const float dist_to_slice, int col, int cell_id){
+void RayCaster::draw_wall_slice(const float dist_to_slice, int col, int cell_id, int offset){
 	int projected_slice_height;
 
 	/*Derived from similar triangle relation. */
@@ -175,20 +206,20 @@ void RayCaster::draw_wall_slice(const float dist_to_slice, int col, int cell_id)
 
 	Cell cell = m_map->cell_table()[cell_id];
 
+	uint8_t r, g, b;
 	if(!cell.texture){
-		uint8_t r, g, b;
-
 		r = cell.color >> 24;
 		g = cell.color >> 16;
 		b = cell.color >> 8;
 
-		m_render->set_draw_color(r, g, b);
-		SDL_RenderDrawLine(m_render->renderer(), col, wall_top, col, wall_bottom);
+		for(int y = wall_top; y < wall_bottom; y++){
+			m_framebuffer->set_pixel(col, y, r, g, b);
+		}
 	}else{
-		std::cout << "Map texture to wall: UNINPLEMENTED\n";
+		column_map_texture(cell.texture, offset, projected_slice_height, col);
 	}
-
 };
+
 
 void RayCaster::render(const Player& player, const Map& map){
 	auto dir = player.direction();
@@ -197,6 +228,8 @@ void RayCaster::render(const Player& player, const Map& map){
 	float ray_angle = m_viewing_angle + (FOV / 2); // start at the left end of the fov arc
 
 	m_render->use_viewport("scene");
+	m_framebuffer->clear();
+
 	for(int col = 0; col < m_plane_width; col++){
 		if(ray_angle < 0) ray_angle += 360.0f;
 
@@ -209,22 +242,30 @@ void RayCaster::render(const Player& player, const Map& map){
 		float distance = std::min(h_distance, v_distance);
 
 		int cell_id;
+		int offset; // rey offset within the cell [0, 64)
+
 		if(h_distance < v_distance){
 			cell_id = m_hcell_id;
+			offset = static_cast<int>(m_hitHx) % Map::CELL_SIZE;
 			if(m_draw_rays)
 				m_points[col] = {m_hitHx, m_hitHy};
 		}else{
 			cell_id = m_vcell_id;
+			offset = static_cast<int>(m_hitVy) % Map::CELL_SIZE;
 			if(m_draw_rays)
 				m_points[col] = {m_hitVx, m_hitVy};
 		}
 
-		draw_wall_slice(distance, col, cell_id);
+		draw_wall_slice(distance, col, cell_id, offset);
 
 		ray_angle -= m_angle_step;
 		if(ray_angle >= 360) ray_angle -= 360.0f;
 
 	}
+
+	// update screen
+	m_framebuffer->update_texture();
+	SDL_RenderCopy(m_render->renderer(), m_framebuffer->texture(), NULL, NULL);
 
 	if(m_draw_rays){
 		m_render->use_viewport("map");
@@ -237,5 +278,3 @@ void RayCaster::render(const Player& player, const Map& map){
 		}
 	}
 }
-
-
