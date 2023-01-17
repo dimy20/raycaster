@@ -17,16 +17,15 @@ Map::Map(Render * render){
 		{1, 1, 1, 1, 1, 1, 1, 1},
 	};
 
-
 	SDL_Surface * tmp = IMG_Load("wall.png");
 	SDL_Surface * wall = SDL_ConvertSurfaceFormat(tmp, SDL_PIXELFORMAT_ABGR8888, 0);
 	SDL_FreeSurface(tmp);
-	//SDL_
 
-	m_cells[1] = {CellType::WALL, NULL, 0xff000000};
-	m_cells[2] = {CellType::WALL, NULL, 0x00ff0000};
+	m_cells[1] = {CellType::WALL, wall, 0xff000000};
+	m_cells[2] = {CellType::WALL, wall, 0x00ff0000};
 	m_cells[3] = {CellType::WALL, wall, 0x0000ff00};
 
+	m_floor_texture = IMG_Load("floor.png");
 }
 
 void Map::draw(){
@@ -40,6 +39,7 @@ void Map::draw(){
 	// red gree blue
 	uint32_t colors[6];
 	memset(colors, 0, sizeof(uint32_t) * 6);
+	colors[0] = 0x00000000;
 	colors[1] = 0xff000000;
 	for(int i = 2; i < 6; i++){
 		colors[i] = 0x0000ff00;
@@ -50,7 +50,7 @@ void Map::draw(){
 	m_render->set_draw_color(0xff, 0xff, 0xff);
 	for(size_t i = 0; i < m_heigth; i++){
 		for(size_t j = 0; j < m_width; j++){
-			if(m_map[i][j] == 0) continue;
+			//if(m_map[i][j] == 0) continue;
 			int cell_value = m_map[i][j];
 			uint32_t color = colors[cell_value];
 			uint8_t r, g, b;

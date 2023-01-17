@@ -35,9 +35,14 @@ void Engine::do_input(){
 	};
 }
 
+void show_fps(const std::string& s){
+
+}
+
 void Engine::run(){
-	m_renderer.set_viewport({0, 0, VIEWPORT_H, VIEWPORT_W}, "map");
-	m_renderer.set_viewport({Map::CELL_SIZE * 8, 0, PROJ_PLANE_W, PROJ_PLANE_H}, "scene");
+	m_renderer.set_viewport({PROJ_PLANE_W - VIEWPORT_W, 0, VIEWPORT_H, VIEWPORT_W}, "map");
+	m_renderer.set_viewport({0, 0, PROJ_PLANE_W, PROJ_PLANE_H}, "scene");
+
 	m_map = Map(&m_renderer);
 	m_player = Player(this, &m_renderer, &m_map, Math::Vec2(96.0f, 224.0f), Math::Vec2(-1.0f, 0.0f));
 
@@ -46,31 +51,37 @@ void Engine::run(){
 	m_caster = RayCaster(&m_renderer, &m_map, &framebuffer);
 	m_caster.init(PROJ_PLANE_W, PROJ_PLANE_H);
 
-	SDL_Surface * srfc = IMG_Load("Wolf3d.png");
-	if(!srfc){
-		std::cerr << "Failed to load texture: " << SDL_GetError() << "\n";
-		exit(1);
-	}
-
 	int n;
 	m_keyboard_state = SDL_GetKeyboardState(&n);
 
-
-
 	framebuffer.update_texture();
+
+	TTF_Font * gfont = TTF_OpenFont("American Captain.ttf", 28);
+	SDL_Color color = {0xff, 0xff, 0xff};
+
+
+	uint32_t old_time, now_time;
 	while(m_running){
 		m_renderer.prepare_scene();
 		do_input();
 
+		old_time = SDL_GetTicks();
 		m_player.update();
 		m_player.draw();
-
-		m_map.draw();
-
 		m_caster.render(m_player, m_map);
+		now_time = SDL_GetTicks();
+
+		m_renderer.use_viewport("scene");
+
+		std::string fps = "fps : " + std::to_string((now_time - old_time) / 1000);
+		SDL_Surface * srf = TTF_RenderText_Solid(gfont, fps.c_str(), color);
+		SDL_Texture * text = SDL_CreateTextureFromSurface(m_renderer.renderer(), srf);
+
+		SDL_FreeSurface(srf);
+
+		SDL_Rect dest = {0, PROJ_PLANE_H - 100, 100, 80};
+		SDL_RenderCopy(m_renderer.renderer(), text, NULL, &dest);
 
 		m_renderer.present_scene();
-		SDL_Delay(16);
-
 	}
 }

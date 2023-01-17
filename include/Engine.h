@@ -12,10 +12,10 @@
 #include "RayCaster.h"
 #include "FrameBuffer.h"
 
-#define PROJ_PLANE_W 400
-#define PROJ_PLANE_H 222
-#define VIEWPORT_W Map::CELL_SIZE * 8
-#define VIEWPORT_H Map::CELL_SIZE * 8
+#define PROJ_PLANE_W 1024
+#define PROJ_PLANE_H 728
+#define VIEWPORT_W Map::CELL_SIZE * 2
+#define VIEWPORT_H Map::CELL_SIZE * 2
 
 class Engine{
 	public:

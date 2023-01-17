@@ -14,6 +14,7 @@ Player::Player(Engine * engine, Render * render, Map * map, Math::Vec2 position,
 }
 
 void Player::draw(){
+	m_render->use_viewport("map");
 	SDL_Rect viewport = m_render->viewport();
 
 	const size_t MAP_W = m_map->world_width();

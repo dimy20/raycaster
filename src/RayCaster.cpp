@@ -1,21 +1,27 @@
 #include "RayCaster.h"
 #include "Player.h"
+#include "Vec.h"
 #include <limits>
 
 #define VIEWPORT_W Map::CELL_SIZE * 8
 #define VIEWPORT_H Map::CELL_SIZE * 8
 
-std::pair<int, int> world2screen2(const int x, const int y){
-	const size_t MW = 8;
-	const size_t MH = MW;
-	int screen_x = x * (64 * 8 / (MW * Map::CELL_SIZE));
-	int screen_y = y * (64 * 8 / (MH * Map::CELL_SIZE));
-	return {screen_x, screen_y};
+std::pair<int, int> world2screen2(int vp_w, int vp_h, const int x, const int y){
+	const size_t map_w = 8 * 64;
+	const size_t map_h = 8 * 64;
+
+	int ans_x, ans_y;
+	float map_2_screenX = (float)vp_w / (float)map_w;
+	float map_2_screenY = (float)vp_h / (float)map_h;
+
+	ans_x = (int)(x * map_2_screenX);
+	ans_y = (int)(y * map_2_screenY);
+
+	return {ans_x, ans_y};
 }
 
-
-
 void RayCaster::init(int plane_w, int plane_h){
+	m_player_height = Map::CELL_SIZE / 2;
 	m_plane_width = plane_w;
 	m_plane_height = plane_h;
 	m_plane_center = plane_h / 2;
@@ -188,10 +194,10 @@ void RayCaster::column_map_texture(SDL_Surface * texture, int texture_x, int col
 			m_framebuffer->set_pixel(screen_column, pixel_y, r, g, b);
 		}
 	}
-};
+}
 
 /* Based on a distance depth and the current colum, draw a wall slice with appropriate perspective.*/
-void RayCaster::draw_wall_slice(const float dist_to_slice, int col, int cell_id, int offset){
+int RayCaster::draw_wall_slice(const float dist_to_slice, int col, int cell_id, int offset){
 	int projected_slice_height;
 
 	/*Derived from similar triangle relation. */
@@ -218,8 +224,59 @@ void RayCaster::draw_wall_slice(const float dist_to_slice, int col, int cell_id,
 	}else{
 		column_map_texture(cell.texture, offset, projected_slice_height, col);
 	}
+
+	return wall_bottom;
 };
 
+void RayCaster::wall_slice_draw_floor(int px, int py, int col, int wall_bottom, float ray_angle){
+	/*We do the inverse procedure for drawing the floor:
+	 * The reason we cant put our floor rendering into our wall drawing raycasting algorithm
+	 * is because we only check for horizontal and vertical intersection, completely skipping over
+	 * the points within the cells.
+	 * So instead of casting rays in the world and figuring out projections to the screen, we're 
+	 * gonna start from screen positions on the projection plane and find an equivalent world point for them.
+	 * */
+
+	/* Worldpoint is a floor point in world space we're trying to compute for a given pixel on screen space
+	 * that is located just below the current wall slice projection we just draw.
+	 *
+	 * beta = theta - alpha;
+	 * Realdist(player, worldpoint) =  worldpoint_straight_dist / cos(beta);
+	 * */
+	for(int y = wall_bottom; y < m_plane_height; y++){
+		int r = y - m_plane_center;
+		int worldpoint_straight_dist = static_cast<int>((m_player_height / (float)r) * m_player_plane_dist);
+
+		float beta = std::abs(ray_angle - m_viewing_angle);
+		float worldpoint_real_dist = (worldpoint_straight_dist / std::cos(Math::to_rad(beta)));
+
+		int worldpoint_x, worldpoint_y;
+
+		// we use ray angle_because the wall column is relative to the current ray cast
+		worldpoint_x = (int)(px + (cos(Math::to_rad(ray_angle)) * worldpoint_real_dist));
+		worldpoint_y = (int)(py - (sin(Math::to_rad(ray_angle)) * worldpoint_real_dist));
+
+		int tilemap_x = worldpoint_x / Map::CELL_SIZE;
+		int tilemap_y = worldpoint_y / Map::CELL_SIZE;
+
+		if(tilemap_x >= 0 && tilemap_x < (int)m_map->width() && tilemap_y >=0 && tilemap_y < (int)m_map->heigth()){
+			int texture_x = worldpoint_x % Map::CELL_SIZE;
+			int texture_y = worldpoint_y % Map::CELL_SIZE;
+
+			SDL_Surface * floor_texture = m_map->floor();
+			uint8_t * pixels = reinterpret_cast<uint8_t *>(floor_texture->pixels);
+			int texture_offset = ((texture_y * floor_texture->w) + texture_x) * floor_texture->format->BytesPerPixel;
+
+			uint8_t r, g, b;
+			r = pixels[texture_offset];
+			g = pixels[texture_offset + 1];
+			b = pixels[texture_offset + 2];
+
+			m_framebuffer->set_pixel(col, y, r, g, b);
+		}
+	}
+
+};
 
 void RayCaster::render(const Player& player, const Map& map){
 	auto dir = player.direction();
@@ -256,7 +313,9 @@ void RayCaster::render(const Player& player, const Map& map){
 				m_points[col] = {m_hitVx, m_hitVy};
 		}
 
-		draw_wall_slice(distance, col, cell_id, offset);
+		int wall_bottom = draw_wall_slice(distance, col, cell_id, offset);
+
+		wall_slice_draw_floor(px, py, col, wall_bottom, ray_angle);
 
 		ray_angle -= m_angle_step;
 		if(ray_angle >= 360) ray_angle -= 360.0f;
@@ -266,14 +325,21 @@ void RayCaster::render(const Player& player, const Map& map){
 	// update screen
 	m_framebuffer->update_texture();
 	SDL_RenderCopy(m_render->renderer(), m_framebuffer->texture(), NULL, NULL);
+	m_map->draw();
 
 	if(m_draw_rays){
 		m_render->use_viewport("map");
 		m_render->set_draw_color(0xff, 0xff, 0xff);
 
+		int vp_h = m_render->viewport().h;
+		int vp_w = m_render->viewport().w;
+
 		for(const auto& [x, y] : m_points){
-			auto[x1, y1] = world2screen2((int)player.position().x(), (int)player.position().y());
-			auto[x2, y2] = world2screen2(x, y);
+			auto[x1, y1] = world2screen2(vp_w, vp_h,
+										(int)player.position().x(),
+										(int)player.position().y());
+
+			auto[x2, y2] = world2screen2(vp_w, vp_h, x, y);
 			SDL_RenderDrawLine(m_render->renderer(), x1, y1, x2, y2);
 		}
 	}

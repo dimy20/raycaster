@@ -25,9 +25,11 @@ class RayCaster{
 		/*Casts ray steping through vertical intersections until hit.*/
 		float cast_vertical_intercept(float ray_angle, const int px, const int py, const Map& map);
 
-		void draw_wall_slice(const float dist_to_slice, int col, int cell_id, int offset);
+		int draw_wall_slice(const float dist_to_slice, int col, int cell_id, int offset);
 
 		void column_map_texture(SDL_Surface * texture, int texture_offset, int column_height, int screen_column);
+
+		void wall_slice_draw_floor(int px, int py, int col, int wall_bottom, float ray_angle);
 	private:
 		Render * m_render;
 		Map * m_map;
@@ -40,6 +42,7 @@ class RayCaster{
 		float m_angle_step; /* FOV / NUM_COLUMS = The angle each ray spans for a colum*/
 		size_t m_player_plane_dist;
 		float m_viewing_angle;
+		int m_player_height;
 
 		float m_hitHx;
 		float m_hitHy;
